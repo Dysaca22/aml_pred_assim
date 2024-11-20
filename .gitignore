@@ -1,0 +1,47 @@
+# Archivos del entorno virtual
+venv/
+.env/
+*.pyc
+*.pyo
+__pycache__/
+*.pyd
+*.so
+*.dll
+
+# Configuración específica del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de logs
+*.log
+
+# Configuración de IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos de distribución
+dist/
+build/
+*.egg-info/
+
+# Archivos de test coverage
+.coverage
+htmlcov/
+.tox/
+
+# Archivos generados por herramientas de empaquetado
+*.manifest
+*.spec
+
+# Configuración de PyCharm
+*.iml
+*.ipr
+*.iws
+
+# Archivos temporales
+*.tmp
+*.bak
+*.old
+*.orig
