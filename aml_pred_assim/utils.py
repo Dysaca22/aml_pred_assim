@@ -86,3 +86,22 @@ def _calculate_positions(i: int, j:int, shape: Tuple[int, int, int, int], k_ind:
     positions.append(np.array(np.meshgrid([i], [j], k_ind, np.arange(l_min, l))).T.reshape(-1, 4))
     positions.append(np.array(np.meshgrid([i], [j], np.arange(k_min, k), l)).T.reshape(-1, 4))
     return np.concatenate(positions)
+
+
+def _flat_indices(positions, matrix):
+    """
+    Convert multi-dimensional array positions to flattened indices.
+
+    Args:
+        positions: Array of position tuples (i, j, k, l)
+        matrix: Input matrix to get shape information
+
+    Returns:
+        List of flattened indices corresponding to the input positions
+    """
+    indices = []
+    for pred in positions:
+        i, j, k, l = pred
+        index = l * matrix.shape[1] * matrix.shape[2] * matrix.shape[0] + k * matrix.shape[1] * matrix.shape[0] + j * matrix.shape[0] + i
+        indices.append(index)
+    return indices
