@@ -7,39 +7,40 @@ A Python library for accessing and processing climate data using two primary dat
 
 The library processes data structures organized hierarchically into layers. Each main layer represents a height level, associated with an atmospheric pressure level. Within each height layer, there are sublayers corresponding to different climatic variables, such as temperature (T), wind components (U and V), humidity, among others. These sublayers are structured as two-dimensional matrices defined by latitude and longitude.
 
-### Estructura del proyecto
+### Project Structure
 
 ```
 aml_pred_assim/
 │
 ├── aml_pred_assim/
-│   ├── __init__.py                 # Inicializa el módulo
-│   ├── core.py                     # Contiene la clase principal `Predecessor`
-│   ├── data/                       # Submódulo para almacenamiento y manejo de datos
+│   ├── __init__.py                 # Initializes the module
+│   ├── core.py                     # Contains the main class `Predecessor`
+│   ├── data/                       # Submodule for data storage and management
 │   │   ├── __init__.py
-│   │   ├── mpas.py                 # Modelo `ModelPredictionAcrossScales`
-│   │   ├── cds.py                  # Almacenamiento `ClimateDataStorage`
-│   │   └── utils.py                # Utilidades opcionales
-│   ├── utils.py                    # Funciones auxiliares generales (si se necesitan)
+│   │   ├── mpas.py                 # `ModelPredictionAcrossScales` model
+│   │   ├── cds.py                  # `ClimateDataStorage` handling
+│   │   └── utils.py                # Optional utilities
+│   ├── utils.py                    # General auxiliary functions (if needed)
 │
 ├── tests/
 │   ├── __init__.py
-│   ├── test_core.py                # Pruebas unitarias para `Predecessor`
-│   └── test_data.py                # Pruebas para el submódulo `data`
+│   ├── test_core.py                # Unit tests for `Predecessor`
+│   └── test_data.py                # Tests for the `data` submodule
 │
-├── setup.py                        # Archivo de configuración para instalar la librería
-├── README.md                       # Documentación del proyecto
-├── LICENSE                         # Licencia de la librería
-└── .gitignore                      # Archivos y carpetas a ignorar por Git
+├── setup.py                        # Configuration file to install the library
+├── README.md                       # Project documentation
+├── LICENSE                         # Library license
+└── .gitignore                      # Files and folders to be ignored by Git
+
 ```
 
-### Pruebas unitarias
+### Unit Tests
 
 ```
 python -m unittest discover tests
 ```
 
-### Publicación en PyPI
+### Publishing on PyPI
 
 ```
 pip install twine
