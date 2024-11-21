@@ -1,5 +1,5 @@
-from .mpas import ModelPredictionAcrossScales
+from .mpas import MPASDataStorage
 from .cds import ClimateDataStorage
 
 
-__all__ = ['ModelPredictionAcrossScales', 'ClimateDataStorage']
+__all__ = ['MPASDataStorage', 'ClimateDataStorage']

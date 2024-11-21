@@ -1,9 +1,10 @@
 from datetime import datetime as dt
-from typing import Tuple, List
+from typing import Optional, Tuple, List
 import numpy as np
 import os
 
 from .data.cds import ClimateDataStorage
+from .data.mpas import MPASDataStorage
 from .utils import (
     _calculate_positions,
     _calculate_bounds,
@@ -85,6 +86,39 @@ def get_climate_data_from_file(variables: List[str], file_path: str) -> np.ndarr
         path=file_path
     )
     return climate_storage.data
+
+
+def get_mpas_data(variables: List[str], mesh_url: str, target_lat: np.ndarray, target_lon: np.ndarray, file_path: Optional[str] = None) -> np.ndarray:
+    """
+    Retrieves MPAS data by downloading the mesh or using an existing file.
+    
+    Args:
+        variables: List of climate variables to retrieve
+        mesh_url: URL to the MPAS mesh file
+        target_lat: Target latitude grid for interpolation
+        target_lon: Target longitude grid for interpolation
+        file_path: Optional path to an existing MPAS NetCDF file
+        
+    Returns:
+        MPAS data as numpy array
+    """
+    if not variables or not isinstance(variables, list):
+        raise ValueError("Variables list must be non-empty and valid")
+        
+    if not mesh_url or not isinstance(mesh_url, str):
+        raise ValueError("Mesh URL must be non-empty and valid")
+
+    if not isinstance(target_lat, np.ndarray) or not isinstance(target_lon, np.ndarray):
+        raise ValueError("Target lat and lon must be numpy arrays")
+
+    mpas_storage = MPASDataStorage(
+        variables=variables,
+        target_lat=target_lat,
+        target_lon=target_lon,
+        mesh_url=mesh_url,
+        path=file_path,
+    )
+    return mpas_storage.data
 
 
 def get_predecessors(matrix: np.ndarray, point: Tuple[int, int, int, int], radius: int, 
