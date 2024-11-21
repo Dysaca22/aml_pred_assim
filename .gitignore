@@ -45,3 +45,6 @@ htmlcov/
 *.bak
 *.old
 *.orig
+
+prueba.ipynb
+ensemble.nc

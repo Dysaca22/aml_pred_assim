@@ -1,3 +1,5 @@
+from sklearn.linear_model import Ridge
+from scipy.sparse import coo_matrix
 from datetime import datetime as dt
 from typing import Tuple, List
 import numpy as np
@@ -8,6 +10,7 @@ from .utils import (
     _calculate_positions,
     _calculate_bounds,
     _validate_point,
+    _flat_indices,
     _get_indices,
 )
 
@@ -87,23 +90,23 @@ def get_climate_data_from_file(variables: List[str], file_path: str) -> np.ndarr
     return climate_storage.data
 
 
-def get_predecessors(matrix: np.ndarray, point: Tuple[int, int, int, int], radius: int, 
+def predecessors(matrix: np.ndarray, point: Tuple[int, int, int, int], radius: int, 
                     x_bound: bool = True, y_bound: bool = True) -> np.ndarray:
     """
     Get predecessors for a given point in a 4D matrix.
 
     Args:
-        matrix: 4D numpy array representing climate data
-        point: Tuple of 4 integers representing (layer, variable, latitude, longitude)
-        radius: Radius for neighborhood calculation
-        x_bound: Whether to respect x-axis boundaries
-        y_bound: Whether to respect y-axis boundaries
+        matrix: 4D numpy array representing climate data with dimensions (layers, variables, latitudes, longitudes)
+        point: Tuple of 4 integers representing (layer, variable, latitude, longitude) coordinates in the matrix
+        radius: Radius for neighborhood calculation, determines the size of the area around the point to consider
+        x_bound: Whether to respect x-axis boundaries when calculating neighbors (True = wrap around disabled)
+        y_bound: Whether to respect y-axis boundaries when calculating neighbors (True = wrap around disabled)
 
     Returns:
-        numpy array of predecessor values
+        numpy array of predecessor values within the specified radius around the given point
         
     Raises:
-        ValueError: If point coordinates are invalid for the given matrix
+        ValueError: If point coordinates are invalid for the given matrix dimensions
         TypeError: If matrix is not a numpy array
         ValueError: If matrix is not 4-dimensional
         ValueError: If point is not a tuple of 4 integers
@@ -134,5 +137,60 @@ def get_predecessors(matrix: np.ndarray, point: Tuple[int, int, int, int], radiu
     lat_min, lat_max, lon_min, lon_max = _calculate_bounds(matrix_shape, point, radius, x_bound, y_bound)
     lat_indices, lon_indices = _get_indices(matrix_shape, lat_min, lat_max, lon_min, lon_max, latitude)
     positions = _calculate_positions(layer, variable, matrix_shape, lat_indices, lon_indices, lat_min, latitude, lon_min, longitude)
+    predecessors = _flat_indices(positions, matrix)
+    return predecessors
 
-    return matrix[tuple(positions.T)]
+def precision_matrix(Xb: np.ndarray, pred: list, n: int, alpha: float = 1) -> np.ndarray:
+    """
+    Calculate the precision matrix using Ridge regression.
+
+    Args:
+        Xb: Input data matrix of shape (samples, features)
+        pred: Array of predecessor indices for each feature
+        n: Number of features/variables
+        alpha: Ridge regression regularization parameter (default=1)
+
+    Returns:
+        Precision matrix as a sparse matrix in COO format
+
+    Raises:
+        ValueError: If Xb is not a 2D numpy array
+        ValueError: If pred dimensions don't match n
+        ValueError: If alpha is not positive
+        TypeError: If inputs are not of correct types
+    """
+    if not isinstance(Xb, np.ndarray) or len(Xb.shape) != 2:
+        raise ValueError("Xb must be a 2D numpy array")
+    if not isinstance(pred, list):
+        raise TypeError("pred must be a list")
+    if not isinstance(n, int) or n <= 0:
+        raise ValueError("n must be a positive integer")
+    if not isinstance(alpha, (int, float)) or alpha <= 0:
+        raise ValueError("alpha must be a positive number")
+    if len(pred) != n:
+        raise ValueError("pred length must match n")
+
+    Xb_ = Xb.T
+    lr = Ridge(fit_intercept=False, alpha=alpha)
+    T, D, I, J = [], [], [], []
+
+    for i, p in enumerate(pred):
+        I.append(i); J.append(i); T.append(1)
+        if i==0:
+            D.append(1/np.var(Xb_[:,i]))
+        else:
+            y = Xb_[:,i]
+            X = Xb_[:,p]
+            lr.fit(X, y)
+            residuals = y-lr.predict(X)
+            I.extend([i] * p.size)
+            J.extend(p.tolist())
+            T.extend((-lr.coef_).tolist())
+            D.append(1/np.var(residuals))
+
+    i = np.array(I, dtype='int32')
+    j = np.array(J, dtype='int32')
+    id = np.arange(n)
+    T = coo_matrix((T, (i,j)))
+    D = coo_matrix((D, (id,id)))
+    return T.T @ D @ T

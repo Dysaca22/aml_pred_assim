@@ -10,6 +10,9 @@ setup(
     install_requires=[
         'setuptools==75.5.0',
         'wheel==0.45.0',
+        'scikit-learn==1.5.2',
+        'numpy==2.1.3',
+        'scipy==1.14.1'
     ],  # Dependencias externas
     python_requires='>=3.12.2',
     classifiers=[
