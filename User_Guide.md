@@ -281,4 +281,176 @@ radius = 3
 # Extract neighboring values
 neighbors = get_predecessors(matrix, point, radius)
 print(neighbors)
+```
+# Utils Module
 
+The `utils.py` module provides auxiliary functions for validating points, calculating bounds, and generating indices in multidimensional arrays, specifically tailored for climate data analysis. These utility functions are crucial for spatial operations in 4D data structures.
+
+---
+
+## Function:`_validate_point`
+
+#### Purpose
+Validates whether a given point is within the bounds of a 4D matrix.
+
+#### Parameters
+- **`matrix`** (`np.ndarray`): The 4D matrix to check.
+- **`point`** (`Tuple[int, int, int, int]`): The point to validate, formatted as `(layer, variable, latitude, longitude)`.
+
+#### Returns
+- **`bool`**: `True` if the point is valid, `False` otherwise.
+
+#### Example
+```python
+matrix = np.random.rand(10, 5, 100, 100)
+point = (2, 1, 50, 50)
+is_valid = _validate_point(matrix, point)
+print(is_valid)  # True
+```
+
+## Function: `_calculate_bounds`
+
+### Purpose
+
+The `_calculate_bounds` function computes the latitude and longitude boundaries around a specific point in a 4D matrix. It considers the radius of the neighborhood and whether to enforce boundaries (x-axis and y-axis).
+
+---
+
+### Parameters
+
+- **`shape`** (`Tuple[int, int, int, int]`): 
+  The shape of the 4D matrix, typically `(layers, variables, latitude, longitude)`.
+
+- **`point`** (`Tuple[int, int, int, int]`): 
+  The point of interest in the matrix, given as `(layer, variable, latitude, longitude)`.
+
+- **`r`** (`int`): 
+  The radius for neighborhood calculation.
+
+- **`x_bound`** (`bool`): 
+  Whether to respect longitude boundaries (x-axis).
+
+- **`y_bound`** (`bool`): 
+  Whether to respect latitude boundaries (y-axis).
+
+---
+
+### Returns
+
+- **`Tuple[int, int, int, int]`**: 
+  A tuple containing the computed bounds:
+  - `k_min`: Minimum latitude index.
+  - `k_max`: Maximum latitude index.
+  - `l_min`: Minimum longitude index.
+  - `l_max`: Maximum longitude index.
+
+---
+
+### How It Works
+
+1. **Latitude Bounds**:
+   - If `y_bound` is `True`, ensures the latitude indices are within `[0, shape[2]-1]`.
+   - If `y_bound` is `False`, allows latitude indices to extend beyond the matrix bounds.
+
+2. **Longitude Bounds**:
+   - If `x_bound` is `True`, ensures the longitude indices are within `[0, shape[3]-1]`.
+   - If `x_bound` is `False`, allows longitude indices to extend beyond the matrix bounds.
+
+3. **Adjustments**:
+   - Adds or subtracts the radius (`r`) from the current latitude (`k`) and longitude (`l`) to compute the bounds.
+
+---
+
+### Example Usage
+
+```python
+shape = (10, 5, 100, 100)  # 4D matrix shape
+point = (2, 1, 50, 50)     # Target point: layer=2, variable=1, latitude=50, longitude=50
+radius = 3
+x_bound = True
+y_bound = True
+
+bounds = _calculate_bounds(shape, point, radius, x_bound, y_bound)
+print(bounds)  # Output: (47, 54, 47, 54)
+```
+
+## Function: `_calculate_positions`
+
+### Purpose
+
+The `_calculate_positions` function computes the exact positions of neighboring points around a given target point in a 4D matrix. This is useful for retrieving specific data points or analyzing spatial relationships within the matrix.
+
+---
+
+### Parameters
+
+- **`i`** (`int`): 
+  The current layer index in the matrix.
+
+- **`j`** (`int`): 
+  The current variable index in the matrix.
+
+- **`shape`** (`Tuple[int, int, int, int]`): 
+  The shape of the 4D matrix, typically `(layers, variables, latitude, longitude)`.
+
+- **`k_ind`** (`np.ndarray`): 
+  Array of latitude indices generated for the neighborhood.
+
+- **`l_ind`** (`np.ndarray`): 
+  Array of longitude indices generated for the neighborhood.
+
+- **`k_min, k`** (`int`): 
+  Minimum latitude bound and current latitude.
+
+- **`l_min, l`** (`int`): 
+  Minimum longitude bound and current longitude.
+
+---
+
+### Returns
+
+- **`np.ndarray`**: 
+  A 2D array where each row represents a position `(layer, variable, latitude, longitude)` within the neighborhood.
+
+---
+
+### How It Works
+
+1. **Position Meshgrid**:
+   - Generates position grids for the neighborhood using `np.meshgrid`, ensuring all possible combinations of neighboring indices are considered.
+
+2. **Concatenate Positions**:
+   - Combines different grids into a single array representing all valid neighboring positions in the 4D matrix.
+
+3. **Edge Cases**:
+   - Handles boundary conditions using the provided bounds and ensures valid positions are returned.
+
+---
+
+### Example Usage
+
+```python
+import numpy as np
+from aml_pred_assim.utils import _calculate_positions
+
+# Define matrix shape and neighborhood indices
+shape = (10, 5, 100, 100)  # 4D matrix shape
+k_indices = np.array([47, 48, 49])
+l_indices = np.array([50, 51, 52])
+k_min, k, l_min, l = 47, 50, 50, 53
+
+# Compute positions
+positions = _calculate_positions(
+    i=2, 
+    j=1, 
+    shape=shape, 
+    k_ind=k_indices, 
+    l_ind=l_indices, 
+    k_min=k_min, 
+    k=k, 
+    l_min=l_min, 
+    l=l
+)
+
+print(positions.shape)  # Output: (number of positions, 4)
+```
