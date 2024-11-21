@@ -48,9 +48,9 @@ python setup.py sdist bdist_wheel
 twine upload dist/*
 ```
 
-### User guide
+### Modules guide
 
-https://github.com/Dysaca22/aml_pred_assim/blob/main/User_Guide.md
+https://github.com/Dysaca22/aml_pred_assim/blob/main/Modules_Guide.md
 
 # References
 - [1] Copernicus Climate Change Service (C3S). (2017). *ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate*. Copernicus Climate Data Store (CDS). Retrieved from https://cds.climate.copernicus.eu/
