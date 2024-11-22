@@ -54,7 +54,7 @@ class ClimateDataStorage:
         """
         if not path:
             self._validate(variables, years, months, days, hours, pressure_levels, key)
-            self.hardcoded_variables = self._get_hardcoded_variables(variables)
+            self.hardcoded_variables = self.__get_hardcoded_variables(variables)
             
             self.variables = variables
             self.years = years
@@ -63,14 +63,14 @@ class ClimateDataStorage:
             self.hours = hours
             self.pressure_levels = pressure_levels
             
-            self._download_ensemble(key)
+            self.__download_ensemble(key)
         else:
             if not variables:
                 raise ValueError("No variables provided")
-            self.hardcoded_variables = self._get_hardcoded_variables(variables)
+            self.hardcoded_variables = self.__get_hardcoded_variables(variables)
             self.variables = variables
 
-        self.data = self._get_data(path)
+        self.data = self.get_data(path)
 
 
     @staticmethod
@@ -107,7 +107,7 @@ class ClimateDataStorage:
             raise ValueError("No key provided")
     
 
-    def _get_hardcoded_variables(self, variables: List[str]) -> List[str]:
+    def __get_hardcoded_variables(self, variables: List[str]) -> List[str]:
         """Get mapped variable names from configuration file.
         
         Args:
@@ -128,7 +128,7 @@ class ClimateDataStorage:
             raise Exception(f"\033[1;31mError reading hardcoded data:\033[0m {e}")
 
 
-    def _download_ensemble(self, key: str) -> None:
+    def __download_ensemble(self, key: str) -> None:
         """Download climate data ensemble from CDS.
         
         Args:
@@ -159,7 +159,7 @@ class ClimateDataStorage:
             raise Exception(f"\033[1;31mError downloading ensemble:\033[0m {e}")            
 
 
-    def _get_data(self, path: Optional[str]) -> np.ndarray:
+    def get_data(self, path: Optional[str]) -> np.ndarray:
         """Process and extract data from NetCDF file.
         
         Args:
@@ -171,18 +171,23 @@ class ClimateDataStorage:
         Raises:
             Exception: If error occurs during data processing
         """
-        print("\033[1;33m\nGetting and extract data...\n\033[0m")
+        print("\033[1;33m\nGetting and extracting data...\n\033[0m")
         try:
             dataset = nc.Dataset(path if path else "./ensemble.nc")
             pressure_levels = dataset.variables["pressure_level"].shape[0]
+            ensembles = dataset.variables[self.hardcoded_variables[0]].shape[0]
 
-            data_layers = []  # Layer | Variable | Ensemble | Latitude | Longitude
-            for i_layer in range(pressure_levels):
-                layer = []
-                for variable in self.hardcoded_variables:
-                    level = dataset.variables[variable][:,0,i_layer,:,:].data
-                    layer.append(level)
-                data_layers.append(np.array(layer))
-            return np.array(data_layers)
+            data_layers = []  # Ensemble | Layer | Variable | Latitude | Longitude
+            for ensemble_index in range(ensembles):
+                ensemble_data = []
+                for i_layer in range(pressure_levels):
+                    layer = []
+                    for variable in self.hardcoded_variables:
+                        level = dataset.variables[variable][ensemble_index, 0, i_layer, :, :].data
+                        layer.append(level)
+                    ensemble_data.append(np.array(layer))
+                data_layers.append(np.array(ensemble_data))
+            
+            return np.array(data_layers)  # Ensemble is now the first dimension
         except Exception as e:
             raise Exception(f"\033[1;31mError getting or extracting data:\033[0m {e}")

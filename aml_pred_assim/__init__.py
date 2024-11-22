@@ -1,14 +1,14 @@
 from .core import (
-    predecessors,
-    precision_matrix,
     get_climate_data_from_api,
     get_climate_data_from_file,
 )
+from .Predecessor import Predecessor
+from .PrecisionMatrix import PrecisionMatrix
 
 
 __all__ = [
-    'predecessors',
-    'precision_matrix',
+    'Predecessor',
+    'PrecisionMatrix',
     'get_climate_data_from_api',
-    'get_climate_data_from_file'
+    'get_climate_data_from_file',
 ]
