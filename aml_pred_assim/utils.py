@@ -1,107 +1,78 @@
-from typing import Tuple
+from scipy.sparse._csr import csr_matrix
+from scipy.sparse import coo_matrix
+from netCDF4 import Dataset
 import numpy as np
 
 
-def _validate_point(matrix: np.ndarray, point: Tuple[int, int, int, int]) -> bool:
+def save_matrix_to_netcdf(matrix, file_path, variable_name="data") -> None:
     """
-    Validate if a point is within matrix bounds.
+    Save a dense or sparse matrix to a NetCDF (.nc) file.
 
     Args:
-        matrix: 4D numpy array
-        point: Tuple of 4 integers representing (layer, variable, latitude, longitude)
+        matrix (numpy.ndarray or scipy.sparse.coo_matrix): 
+            The matrix to save. Can be a dense numpy array or a sparse COO matrix.
+        file_path (str): 
+            The path to the NetCDF file where the matrix will be saved.
+        variable_name (str): 
+            The base name for the variable(s) to store the data.
 
-    Returns:
-        bool indicating if point is valid
+    Raises:
+        ValueError: If the matrix type is unsupported.
     """
-    i, j, k, l = point
-    shape = matrix.shape
-    return all(0 <= idx < dim for idx, dim in zip((i, j, k, l), shape))
+    try:
+        with Dataset(file_path, "w", format="NETCDF4") as nc_file:
+            if isinstance(matrix, np.ndarray):
+                _save_dense_matrix_to_netcdf(matrix, nc_file, variable_name)
+                print(f"Dense matrix successfully saved to {file_path}")
+            elif isinstance(matrix, coo_matrix) or isinstance(matrix, csr_matrix):
+                if isinstance(matrix, csr_matrix):
+                    matrix = matrix.tocoo()
+                _save_sparse_matrix_to_netcdf(matrix, nc_file, variable_name)
+                print(f"Sparse matrix successfully saved to {file_path}")
+            else:
+                raise ValueError("Unsupported matrix type. Provide a numpy array or scipy.sparse.coo_matrix.")
+    except Exception as e:
+        print(f"Error saving the matrix: {e}")
 
 
-def _calculate_bounds(shape: Tuple[int, int, int, int], point: Tuple[int, int, int, int], 
-                     r: int, x_bound: bool, y_bound: bool) -> Tuple[int, int, int, int]:
+def _save_dense_matrix_to_netcdf(matrix, nc_file, variable_name):
     """
-    Calculate bounds for latitude and longitude.
+    Save a dense matrix to a NetCDF file.
 
     Args:
-        shape: Shape of the matrix
-        point: Tuple of 4 integers representing (layer, variable, latitude, longitude)
-        r: Radius for neighborhood calculation
-        x_bound: Whether to respect x-axis boundaries
-        y_bound: Whether to respect y-axis boundaries
-
-    Returns:
-        Tuple of (k_min, k_max, l_min, l_max)
+        matrix (numpy.ndarray): The dense matrix to save.
+        nc_file (netCDF4.Dataset): The open NetCDF file object.
+        variable_name (str): The name of the variable to store the data.
     """
-    _, _, k, l = point
-    k_min = max(k-r, 0) if y_bound else k-r
-    k_max = min(shape[2]-1, k+r+1) if y_bound else k+r+1
-    l_min = max(l-r, 0) if x_bound else l-r
-    l_max = min(shape[3]-1, l+r+1) if x_bound else l+r+1
-    return k_min, k_max, l_min, l_max
+    dimensions = {}
+    for dim_idx, dim_size in enumerate(matrix.shape):
+        dim_name = f"dim_{dim_idx}"
+        dimensions[dim_name] = nc_file.createDimension(dim_name, dim_size)
+
+    var = nc_file.createVariable(variable_name, matrix.dtype, tuple(dimensions.keys()))
+    var[:] = matrix
 
 
-def _get_indices(shape: Tuple[int, int, int, int], k_min: int, k_max: int, 
-                l_min: int, l_max: int, k: int) -> Tuple[np.ndarray, np.ndarray]:
+def _save_sparse_matrix_to_netcdf(sparse_matrix, nc_file, variable_name):
     """
-    Get unique indices considering periodic boundaries.
+    Save a sparse COO matrix to a NetCDF file.
 
     Args:
-        shape: Shape of the matrix
-        k_min, k_max: Latitude bounds
-        l_min, l_max: Longitude bounds
-        k: Current latitude point
-
-    Returns:
-        Tuple of (k_indices, l_indices)
+        sparse_matrix (coo_matrix): The sparse matrix to save in COO format.
+        nc_file (netCDF4.Dataset): The open NetCDF file object.
+        variable_name (str): The base name for the variables storing sparse data.
     """
-    
-    k_ind = np.unique(np.arange(k_min, k_max) % shape[2])
-    l_ind = np.unique(np.arange(l_min, l_max) % shape[3])
+    nc_file.createDimension("nnz", sparse_matrix.nnz)
+    nc_file.createDimension("dim_0", sparse_matrix.shape[0])
+    nc_file.createDimension("dim_1", sparse_matrix.shape[1])
 
-    if k_ind.size == 0:
-        k_ind = np.array([k])
-    
-    return k_ind, l_ind
+    row_var = nc_file.createVariable(f"{variable_name}_row", "i4", ("nnz",))
+    row_var[:] = sparse_matrix.row
 
+    col_var = nc_file.createVariable(f"{variable_name}_col", "i4", ("nnz",))
+    col_var[:] = sparse_matrix.col
 
-def _calculate_positions(i: int, j:int, shape: Tuple[int, int, int, int], k_ind: np.ndarray, 
-                        l_ind: np.ndarray, k_min: int, k: int, l_min: int, l: int) -> np.ndarray:
-    """
-    Calculate predecessor positions.
+    data_var = nc_file.createVariable(f"{variable_name}_data", sparse_matrix.data.dtype, ("nnz",))
+    data_var[:] = sparse_matrix.data
 
-    Args:
-        i: Current layer
-        shape: Shape of the matrix
-        k_ind, l_ind: Latitude and longitude indices
-        k_min, k: Latitude values
-        l_min, l: Longitude values
-
-    Returns:
-        Array of positions
-    """
-    positions = []
-    positions.append(np.array(np.meshgrid(np.arange(i), np.arange(shape[1]), k_ind, l_ind)).T.reshape(-1, 4))
-    positions.append(np.array(np.meshgrid([i], np.arange(j), k_ind, l_ind)).T.reshape(-1, 4))
-    positions.append(np.array(np.meshgrid([i], [j], k_ind, np.arange(l_min, l))).T.reshape(-1, 4))
-    positions.append(np.array(np.meshgrid([i], [j], np.arange(k_min, k), l)).T.reshape(-1, 4))
-    return np.concatenate(positions)
-
-
-def _flat_indices(positions, matrix):
-    """
-    Convert multi-dimensional array positions to flattened indices.
-
-    Args:
-        positions: Array of position tuples (i, j, k, l)
-        matrix: Input matrix to get shape information
-
-    Returns:
-        List of flattened indices corresponding to the input positions
-    """
-    indices = []
-    for pred in positions:
-        i, j, k, l = pred
-        index = l * matrix.shape[1] * matrix.shape[2] * matrix.shape[0] + k * matrix.shape[1] * matrix.shape[0] + j * matrix.shape[0] + i
-        indices.append(index)
-    return indices
+    nc_file.sparse_format = "coo"

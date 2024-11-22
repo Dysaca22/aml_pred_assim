@@ -1,9 +1,10 @@
 from sklearn.linear_model import Ridge
 from scipy.sparse import coo_matrix
 import matplotlib.pyplot as plt
+from typing import Tuple
 import numpy as np
-import sparse
-import h5py
+
+from .utils import save_matrix_to_netcdf
 
 
 class PrecisionMatrix:
@@ -35,7 +36,7 @@ class PrecisionMatrix:
         self.value = self.__calculate_precision_matrix()
 
 
-    def __calculate_precision_matrix(self):
+    def __calculate_precision_matrix(self) -> Tuple[coo_matrix, coo_matrix]:
         """
         Private method to calculate the precision matrix using Ridge regression.
 
@@ -71,49 +72,49 @@ class PrecisionMatrix:
         return T_matrix, D_matrix
 
 
-    def get_decomposition_matrix(self):
+    def get_decomposition_matrix(self) -> Tuple[coo_matrix, coo_matrix]:
         return self.value
 
 
-    def show_T(self):
+    def show_T(self) -> None:
         T, _ = self.value
         plt.figure(figsize=(20, 20))
         plt.spy(T, marker='.')
         plt.show()
 
 
-    def show_D(self):
+    def show_D(self) -> None:
         _, D = self.value
         plt.figure(figsize=(20, 20))
         plt.spy(D, marker='.')
         plt.show()
 
 
-    def get_matrix(self):
+    def get_matrix(self) -> coo_matrix:
         T, D = self.value
         Binv = T.T @ T + D
         return Binv
 
-
-    def save_as_nc(self, filename: str):
+    
+    def store_T(self, filename: str = "T.nc") -> None:
         """
-        Save the calculated precision matrix and diagonal matrix to an HDF5 file.
-
-        Args:
-            filename: Path to save the HDF5 file
+        Store the T matrix in a NetCDF file.
         """
-        T_matrix, D_matrix = self.value
-        
-        # Convert sparse matrices to dense tensors using the `sparse` library
-        T_tensor = sparse.COO.from_scipy_sparse(T_matrix)
-        D_tensor = sparse.COO.from_scipy_sparse(D_matrix)
+        T, _ = self.value
+        save_matrix_to_netcdf(T, filename)
 
-        # Save tensors in HDF5 format
-        with h5py.File(filename, 'w') as f:
-            f.create_dataset('T_data', data=T_tensor.data)
-            f.create_dataset('T_coords', data=T_tensor.coords)
-            f.create_dataset('D_data', data=D_tensor.data)
-            f.create_dataset('D_coords', data=D_tensor.coords)
-            f.attrs['n'] = self.n
 
-        print(f"HDF5 file saved as {filename}")
+    def store_D(self, filename: str = "D.nc") -> None:
+        """
+        Store the D matrix in a NetCDF file.
+        """
+        _, D = self.value
+        save_matrix_to_netcdf(D, filename)
+
+
+    def store_matrix(self, filename: str = "Binv.nc") -> None:
+        """
+        Store the precision matrix in a NetCDF file.
+        """
+        Binv = self.get_matrix()
+        save_matrix_to_netcdf(Binv, filename)

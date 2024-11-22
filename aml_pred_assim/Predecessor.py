@@ -1,5 +1,4 @@
-from netCDF4 import Dataset
-from typing import Tuple
+from typing import List, Tuple
 import numpy as np
 
 
@@ -17,6 +16,7 @@ class Predecessor:
             raise ValueError("Matrix must be 4-dimensional")
         
         self.matrix = matrix
+        self.all_predecessors = None
 
 
     def __validate_point(self, point: Tuple[int, int, int, int]) -> bool:
@@ -105,7 +105,7 @@ class Predecessor:
         return np.concatenate(positions)
 
 
-    def __flat_indices(self, positions, matrix):
+    def __flat_indices(self, positions, matrix) -> List:
         """
         Convert multi-dimensional array positions to flattened indices.
 
@@ -155,6 +155,8 @@ class Predecessor:
         Returns:
             numpy array of predecessors for all points.
         """
+        if self.all_predecessors is not None:
+            return self.all_predecessors
         results = []
         for layer in range(self.matrix.shape[0]):
             for variable in range(self.matrix.shape[1]):
@@ -163,25 +165,5 @@ class Predecessor:
                         point = (layer, variable, latitude, longitude)
                         predecessors = self.get_point_predecessors(point, radius, x_bound, y_bound)
                         results.append(np.array(predecessors))
+        self.all_predecessors = results
         return results
-
-
-    def save_as_nc(self, filename: str):
-        """
-        Save the matrix to a NetCDF file.
-
-        Args:
-            filename: Path to save the NetCDF file.
-        """
-        with Dataset(filename, 'w', format='NETCDF4') as ncfile:
-            # Create dimensions
-            ncfile.createDimension('layer', self.matrix.shape[0])
-            ncfile.createDimension('variable', self.matrix.shape[1])
-            ncfile.createDimension('latitude', self.matrix.shape[2])
-            ncfile.createDimension('longitude', self.matrix.shape[3])
-
-            # Create variable
-            matrix_var = ncfile.createVariable('matrix', 'f4', ('layer', 'variable', 'latitude', 'longitude'))
-            matrix_var[:] = self.matrix
-
-        print(f"NetCDF file saved as {filename}")

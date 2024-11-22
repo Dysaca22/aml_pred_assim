@@ -1,18 +1,9 @@
-from sklearn.linear_model import Ridge
-from scipy.sparse import coo_matrix
 from datetime import datetime as dt
-from typing import Tuple, List
+from typing import List
 import numpy as np
 import os
 
 from .mapper.cds import ClimateDataStorage
-from .utils import (
-    _calculate_positions,
-    _calculate_bounds,
-    _validate_point,
-    _flat_indices,
-    _get_indices,
-)
 
 
 def get_climate_data_from_api(variables: List[str], datetime: dt, pressure_levels: List[str], api_key: str) -> np.ndarray:
