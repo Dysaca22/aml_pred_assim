@@ -17,7 +17,7 @@ This estimator is particularly useful in the context of **Data Assimilation**, w
 We utilize **sparse libraries in Python** to ensure the method is both **memory-efficient** and **computationally fast** during the computation of precision matrices. This makes it suitable for large-scale atmospheric models that would otherwise be too demanding on resources.
 
 ### Easy Precision Matrix Building for Popular Models 🔧💻
-As an additional feature, this package includes a **wrapper** to easily build precision matrices for the following models:
+As an additional feature, this package includes a **wrapper** to easily build precision matrices for the following well-known models in the context of weather forecast and climate prediction:
 - **ERA5**: High-resolution climate data access from the **Copernicus Climate Data Store (CDS)** via its API [4].
 - **MPAS**: Management of climate prediction data across different spatial scales using the **Model Prediction Across Scales (MPAS)** [5].
 
