@@ -1,3 +1,5 @@
+![Logo](https://aml-cs.github.io/images/logo.jpg)
+
 # Statistical Package for Computing Precision Covariance Matrices via Modified Cholesky Decomposition 🌍📊
 
 This statistical package provides a method to compute precision covariance matrices using a **modified Cholesky decomposition** [1, 2] for **Atmospheric General Circulation Models (AGCMs)**. The technique takes advantage of a **pre-defined localization radius** structure to generate a **sparse estimator** of the precision matrix. This is achieved by leveraging an **ensemble of model realizations** to improve accuracy while reducing computational complexity.
