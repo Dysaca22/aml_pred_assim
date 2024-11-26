@@ -29,7 +29,7 @@ The library processes data organized into hierarchical layers. Each primary laye
 - Elías D. Niño-Ruiz, Ph.D. - Director of the Applied Math and Computer Science Lab (www.aml-cs.org), Universidad del Norte, Colombia - https://enino84.github.io/ - enino@uninorte.edu.co
 - Giuliano
 - Dylan
-- Nicolas
+- Nicolas Quintero Quintero, MSc - PhD student in civil engineering, Universidad del Norte, Colombia - qnicolas@uninorte.edu.co
 
 ### Project Structure
 
@@ -38,15 +38,15 @@ aml_pred_assim/
 │
 ├── aml_pred_assim/
 │   ├── __init__.py                 # Initializes the module
-│   ├── core.py                     # Contains the main class `Predecessor`
-│   ├── data/                       # Submodule for data storage and management
+│   ├── core.py                     # Contains core functions for climate data handling
+│   ├── Predecessor.py              # Implements the `Predecessor` class
+│   ├── PrecisionMatrix.py          # Implements the `PrecisionMatrix` class for matrix calculations
+│   ├── Mapper/                     # Submodule for data storage and management
 │   │   ├── __init__.py
-│   │   ├── mpas.py                 # `ModelPredictionAcrossScales` model
-│   │   ├── cds.py                  # `ClimateDataStorage` handling
-│   │   └── utils.py                # Optional utilities
+│   │   ├── cds.py                  # Handles climate data download and processing from CDS
+│   │   ├── cds_variables.json      # Mapping of climate variable names
 │   ├── utils.py                    # General auxiliary functions (if needed)
-│
-├── tests/
+│   ├── tests/
 │   ├── __init__.py
 │   ├── test_core.py                # Unit tests for `Predecessor`
 │   └── test_data.py                # Tests for the `data` submodule
