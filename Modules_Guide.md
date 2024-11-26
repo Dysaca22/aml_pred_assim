@@ -16,22 +16,21 @@ The `ClimateDataStorage` class handles downloading, processing, and storing clim
 ### **`_validate`**
 Ensures all required parameters are defined and valid.
 
----
+
 
 ### **`_get_hardcoded_variables`**
 Maps human-readable climate variable names (e.g., `"temperature"`) to internal identifiers (e.g., `"t"`) using the configuration file `cds_variables.json`.
 
----
+
 
 ### **`_download_ensemble`**
 Downloads data from the CDS API and saves it in NetCDF format.
 
----
+
 
 ### **`get_data`**
 Processes NetCDF files into a multidimensional array with the structure `[Layers | Variables | Ensembles | Latitude | Longitude]`.
 
----
 
 ## **Example Usage**
 ```python
@@ -80,7 +79,7 @@ Fetches climate data from the CDS API.
 #### **Returns**:
 - A multidimensional NumPy array.
 
----
+
 
 ### **Function: `get_climate_data_from_file`**
 Loads climate data from a local NetCDF file.
@@ -92,7 +91,7 @@ Loads climate data from a local NetCDF file.
 #### **Returns**:
 - A multidimensional NumPy array.
 
----
+
 
 ## **Example Usage**
 ```python
@@ -126,33 +125,49 @@ The `Predecessor` class analyzes spatial relationships within a 4D climate data 
 
 ## **Key Methods**
 
+### **`__validate_point`**
+Validates whether a specific point is within the bounds of the matrix.
+
+### **`__calculate_bounds`**
+Calculates the latitude and longitude boundaries for a given point and radius.
+
+### **`__get_indices`**
+Retrieves unique latitude and longitude indices for a neighborhood around a given point.
+
+
+### **`__calculate_positions`**
+Computes the exact positions of neighboring points in the matrix.
+
+### **`__flat_indices`**
+Converts multidimensional positions into flattened indices for easier access.
+
 ### **`get_point_predecessors`**
 Finds neighboring points for a specific point in the matrix.
-
----
 
 ### **`get_all_predecessors`**
 Computes predecessors for all points in the matrix.
 
----
-
-### **Example Usage**
+## **Example Usage**
 ```python
 from aml_pred_assim.Predecessor import Predecessor
 import numpy as np
 
-matrix = np.random.rand(2, 3, 10, 10)  # Example 4D data
+# Example 4D climate data matrix
+matrix = np.random.rand(2, 3, 10, 10)
+
+# Initialize the Predecessor class
 predecessor = Predecessor(matrix)
 
 # Find neighbors for a specific point
 point = (1, 2, 5, 5)
 neighbors = predecessor.get_point_predecessors(point, radius=2)
-print(neighbors)
+print("Neighbors for point:", neighbors)
 
-# Compute predecessors for all points
+# Compute predecessors for all points in the matrix
 all_predecessors = predecessor.get_all_predecessors(radius=2)
-print(all_predecessors[0])  # Predecessors for the first point
+print("All predecessors for the first point:", all_predecessors[0])
 ```
+
 
 ---
 
@@ -166,8 +181,6 @@ The `PrecisionMatrix` class computes precision covariance matrices using Ridge r
 
 ### **`store_T`**
 Saves the `T` matrix in a NetCDF file.
-
----
 
 ### **Example Usage**
 ```python
@@ -197,8 +210,6 @@ The `utils.py` module provides auxiliary functions for matrix handling, includin
 
 ### **`save_matrix_to_netcdf`**
 Saves a dense or sparse matrix to a NetCDF file.
-
----
 
 ## **Example Usage**
 ```python
