@@ -171,6 +171,7 @@ print("All predecessors for the first point:", all_predecessors[0])
 
 ---
 
+
 # **4. PrecisionMatrix Class**
 
 The `PrecisionMatrix` class computes precision covariance matrices using Ridge regression.
@@ -179,30 +180,83 @@ The `PrecisionMatrix` class computes precision covariance matrices using Ridge r
 
 ## **Key Methods**
 
-### **`store_T`**
-Saves the `T` matrix in a NetCDF file.
+### **`__calculate_precision_matrix`**
+Calculates the precision matrix using Ridge regression.
 
-### **Example Usage**
+
+
+### **`get_decomposition_matrix`**
+Returns the decomposition matrices `T` (coefficients) and `D` (diagonal precision values).
+
+
+
+### **`show_T`**
+Displays the `T` matrix (sparse coefficients) visually using a spy plot.
+
+
+
+### **`show_D`**
+Displays the `D` matrix (sparse diagonal) visually using a spy plot.
+
+
+
+### **`get_matrix`**
+Computes the full precision matrix as \( B^{-1} = T^T T + D \).
+
+
+
+### **`store_T`**
+Saves the `T` matrix to a NetCDF file.
+
+
+
+### **`store_D`**
+Saves the `D` matrix to a NetCDF file.
+
+
+
+### **`store_matrix`**
+Saves the full precision matrix \( B^{-1} \) to a NetCDF file.
+
+
+
+## **Example Usage**
 ```python
 from aml_pred_assim.PrecisionMatrix import PrecisionMatrix
 import numpy as np
 
-Xb = np.random.rand(100, 10)  # Input data (100 samples, 10 features)
-pred = [np.array([0, 1, 2]) for _ in range(10)]  # Example predecessors
+# Simulate input data
+Xb = np.random.rand(100, 10)  # 100 samples, 10 features
+pred = [np.array([0, 1, 2]) for _ in range(10)]  # Example predecessor indices
 
-# Create the precision matrix
-matrix = PrecisionMatrix(Xb, pred, n=10, alpha=0.1)
+# Initialize the PrecisionMatrix class
+precision_matrix = PrecisionMatrix(Xb, pred, n=10, alpha=0.1)
 
-# Store and visualize the T matrix
-matrix.store_T("T_matrix.nc")
-matrix.show_T()
+# Retrieve the decomposition matrices
+T, D = precision_matrix.get_decomposition_matrix()
+print("Decomposition Matrices Retrieved")
+
+# Display the T matrix
+precision_matrix.show_T()
+
+# Display the D matrix
+precision_matrix.show_D()
+
+# Compute and save the precision matrix
+Binv = precision_matrix.get_matrix()
+print("Computed Precision Matrix:", Binv)
+
+# Save matrices to files
+precision_matrix.store_T("T_matrix.nc")
+precision_matrix.store_D("D_matrix.nc")
+precision_matrix.store_matrix("PrecisionMatrix.nc")
 ```
 
 ---
 
 # **5. Utils Module**
 
-The `utils.py` module provides auxiliary functions for matrix handling, including saving dense and sparse matrices to NetCDF files.
+The `utils.py` module provides functions to save dense and sparse matrices into NetCDF files.
 
 ---
 
@@ -211,26 +265,49 @@ The `utils.py` module provides auxiliary functions for matrix handling, includin
 ### **`save_matrix_to_netcdf`**
 Saves a dense or sparse matrix to a NetCDF file.
 
+
+### **`_save_dense_matrix_to_netcdf`**
+Saves a dense matrix to a NetCDF file.
+
+
+### **`_save_sparse_matrix_to_netcdf`**
+Saves a sparse COO matrix to a NetCDF file.
+
+
 ## **Example Usage**
+
+### **Saving a Dense Matrix**
 ```python
 from aml_pred_assim.utils import save_matrix_to_netcdf
 import numpy as np
 
-# Save a dense matrix
+# Create a dense matrix
 dense_matrix = np.random.rand(5, 5)
-save_matrix_to_netcdf(dense_matrix, "dense_matrix.nc")
 
-# Save a sparse matrix
+# Save to a NetCDF file
+save_matrix_to_netcdf(dense_matrix, "dense_matrix.nc")
+print("Dense matrix saved successfully.")
+```
+
+
+### **Saving a Sparse Matrix**
+```python
+from aml_pred_assim.utils import save_matrix_to_netcdf
 from scipy.sparse import coo_matrix
+
+# Create a sparse COO matrix
 sparse_matrix = coo_matrix([[0, 1], [2, 0]])
+
+# Save to a NetCDF file
 save_matrix_to_netcdf(sparse_matrix, "sparse_matrix.nc", variable_name="sparse_data")
+print("Sparse matrix saved successfully.")
 ```
 
 ---
-
 # **6. Testing**
 
 The `tests` directory includes unit tests for validating core functionalities.
+---
 
 Run all tests:
 ```bash
