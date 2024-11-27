@@ -19,7 +19,6 @@ We utilize **sparse libraries in Python** to ensure the method is both **memory-
 ### Easy Precision Matrix Building for Popular Models 🔧💻
 As an additional feature, this package includes a **wrapper** to easily build precision matrices for the following well-known models in the context of weather forecast and climate prediction:
 - **ERA5**: High-resolution climate data access from the **Copernicus Climate Data Store (CDS)** via its API [4].
-- **MPAS**: Management of climate prediction data across different spatial scales using the **Model Prediction Across Scales (MPAS)** [5].
 
 These integrations simplify the process of incorporating real-world climate data into your model and precision matrix computations.
 
@@ -81,6 +80,5 @@ https://github.com/Dysaca22/aml_pred_assim/blob/main/Modules_Guide.md
 - [2] Nino-Ruiz, Elias D., Adrian Sandu, and Xinwei Deng. "An ensemble Kalman filter implementation based on modified Cholesky decomposition for inverse covariance matrix estimation." SIAM Journal on Scientific Computing 40.2 (2018): A867-A886.
 - [3] Nino-Ruiz, Elias D., Luis G. Guzman-Reyes, and Rolando Beltran-Arrieta. "An adjoint-free four-dimensional variational data assimilation method via a modified Cholesky decomposition and an iterative Woodbury matrix formula." Nonlinear Dynamics 99.3 (2020): 2441-2457.
 - [4] Copernicus Climate Change Service (C3S). (2017). *ERA5: Fifth generation of ECMWF atmospheric reanalyses of the global climate*. Copernicus Climate Data Store (CDS). Retrieved from https://cds.climate.copernicus.eu/
-- [5] Skamarock, W. C., Klemp, J. B., Dudhia, J., Gill, D. O., Liu, Z., Berner, J., Wang, W., Powers, J. G., Duda, M. G., Barker, D. M., Huang, X.-Y., & Grell, G. A. (2012). A Description of the Advanced Research WRF Version 3. National Center for Atmospheric Research. Retrieved from https://www2.mmm.ucar.edu/wrf/users/docs/arw_v3.pdf
 
 
