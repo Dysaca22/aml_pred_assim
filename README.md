@@ -27,7 +27,7 @@ The library processes data organized into hierarchical layers. Each primary laye
 ### Developers
 - Elías D. Niño-Ruiz, Ph.D. - Director of the Applied Math and Computer Science Lab (www.aml-cs.org), Universidad del Norte, Colombia - https://enino84.github.io/ - enino@uninorte.edu.co
 - Giuliano
-- Dylan
+- Dylan Cantillo Arrieta, System Engineer, Universidad del Norte, Colombia - dilanc@uninorte.edu.co
 - Nicolas Quintero Quintero, MSc. - PhD student in civil engineering, Universidad del Norte, Colombia - qnicolas@uninorte.edu.co
 
 ### Project Structure
