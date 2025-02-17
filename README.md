@@ -57,17 +57,33 @@ aml_pred_assim/
 
 ```
 
+### Installation
+
+Create a  virtual environment and activate it:
+```
+py -m venv venv
+source venv\Scripts\activate
+```
+Install the library:
+```
+pip install -e .
+```
+Setup the environment:
+```
+py setup.py install
+```
+
 ### Unit Tests
 
 ```
-python -m unittest discover tests
+py -m unittest discover tests
 ```
 
 ### Publishing on PyPI
 
 ```
 pip install twine
-python setup.py sdist bdist_wheel
+py setup.py sdist bdist_wheel
 twine upload dist/*
 ```
 

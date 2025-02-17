@@ -12,7 +12,9 @@ setup(
         'wheel==0.45.0',
         'scikit-learn==1.5.2',
         'numpy==2.1.3',
-        'scipy==1.14.1'
+        'scipy==1.14.1',
+        'cdsapi==0.7.4',
+        'netCDF4==1.7.2'
     ],  # Dependencias externas
     python_requires='>=3.12.2',
     classifiers=[
