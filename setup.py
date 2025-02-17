@@ -3,9 +3,9 @@ from setuptools import setup, find_packages
 setup(
     name='aml_pred_assim',
     version='0.1.0',
-    description='Una librería para cálculos básicos',
-    author='Tu Nombre',
-    author_email='tu_email@example.com',
+    description='A package for predictive assimilation',
+    author='Nino-Ruiz, Elias D',
+    author_email='enino@uninorte.edu.co',
     packages=find_packages(),
     install_requires=[
         'setuptools==75.5.0',
@@ -20,6 +20,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding="utf8").read(),
     long_description_content_type='text/markdown',
 )
