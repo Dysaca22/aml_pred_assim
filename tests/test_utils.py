@@ -1,83 +1,85 @@
+from scipy.sparse import coo_matrix
+from netCDF4 import Dataset
 import numpy as np
 import unittest
+import os
 
-from aml_pred_assim.utils import (
-    _validate_point,
-    _calculate_bounds,
-    _get_indices,
-    _calculate_positions
-)
-
+from aml_pred_assim.utils import save_matrix_to_netcdf, _save_dense_matrix_to_netcdf, _save_sparse_matrix_to_netcdf
 
 class TestUtils(unittest.TestCase):
     def setUp(self):
-        self.test_matrix = np.zeros((2, 3, 4, 5))
-        self.test_shape = (2, 3, 4, 5)
-    
+        self.test_dense_matrix = np.array([[1, 2, 3], [4, 5, 6]])
+        self.test_sparse_matrix = coo_matrix(([1, 2, 3], ([0, 1, 2], [1, 2, 0])), shape=(3, 3))
+        self.test_file_path = "test_matrix.nc"
 
-    def test_validate_point(self):
-        # Test valid point
-        self.assertTrue(_validate_point(self.test_matrix, (1, 2, 3, 4)))
-        # Test invalid points
-        self.assertFalse(_validate_point(self.test_matrix, (2, 2, 3, 4)))
-        self.assertFalse(_validate_point(self.test_matrix, (-1, 2, 3, 4)))
-        self.assertFalse(_validate_point(self.test_matrix, (1, 3, 3, 4)))
-        self.assertFalse(_validate_point(self.test_matrix, (1, 2, 4, 4)))
-        self.assertFalse(_validate_point(self.test_matrix, (1, 2, 3, 5)))
+    def tearDown(self):
+        if os.path.exists(self.test_file_path):
+            os.remove(self.test_file_path)
 
+    def test_save_dense_matrix(self):
+        save_matrix_to_netcdf(self.test_dense_matrix, self.test_file_path)
+        
+        with Dataset(self.test_file_path, "r") as nc_file:
+            self.assertTrue("data" in nc_file.variables)
+            saved_matrix = nc_file.variables["data"][:]
+            np.testing.assert_array_equal(saved_matrix, self.test_dense_matrix)
 
-    def test_calculate_bounds(self):
-        point = (1, 2, 2, 3)
-        r = 1
+    def test_save_sparse_matrix(self):
+        save_matrix_to_netcdf(self.test_sparse_matrix, self.test_file_path)
         
-        # Test with boundaries respected
-        bounds = _calculate_bounds(self.test_shape, point, r, True, True)
-        self.assertEqual(bounds, (1, 3, 2, 4))
-        
-        # Test with no boundaries
-        bounds = _calculate_bounds(self.test_shape, point, r, False, False)
-        self.assertEqual(bounds, (1, 4, 2, 5))
-        
-        # Test edge cases
-        point_edge = (1, 2, 0, 0)
-        bounds_edge = _calculate_bounds(self.test_shape, point_edge, r, True, True)
-        self.assertEqual(bounds_edge, (0, 2, 0, 2))
+        with Dataset(self.test_file_path, "r") as nc_file:
+            self.assertTrue("data_row" in nc_file.variables)
+            self.assertTrue("data_col" in nc_file.variables)
+            self.assertTrue("data_data" in nc_file.variables)
+            self.assertEqual(nc_file.sparse_format, "coo")
+            
+            saved_rows = nc_file.variables["data_row"][:]
+            saved_cols = nc_file.variables["data_col"][:]
+            saved_data = nc_file.variables["data_data"][:]
+            
+            np.testing.assert_array_equal(saved_rows, self.test_sparse_matrix.row)
+            np.testing.assert_array_equal(saved_cols, self.test_sparse_matrix.col)
+            np.testing.assert_array_equal(saved_data, self.test_sparse_matrix.data)
 
+    def test_invalid_matrix_type(self):
+        invalid_matrix = "not a matrix"
+        with self.assertRaises(ValueError):
+            save_matrix_to_netcdf(invalid_matrix, self.test_file_path)
 
-    def test_get_indices(self):
-        # Test normal case
-        k_ind, l_ind = _get_indices(self.test_shape, 1, 3, 2, 4, 2)
-        np.testing.assert_array_equal(k_ind, np.array([1, 2]))
-        np.testing.assert_array_equal(l_ind, np.array([2, 3]))
-        
-        # Test periodic boundaries
-        k_ind, l_ind = _get_indices(self.test_shape, -1, 1, 4, 6, 0)
-        np.testing.assert_array_equal(k_ind, np.array([0, 3]))
-        np.testing.assert_array_equal(l_ind, np.array([0, 4]))
-        
-        # Test empty case
-        k_ind, l_ind = _get_indices(self.test_shape, 2, 2, 2, 3, 2)
-        np.testing.assert_array_equal(k_ind, np.array([2]))
-        np.testing.assert_array_equal(l_ind, np.array([2]))
+    def test__save_dense_matrix_to_netcdf(self):
+        with Dataset(self.test_file_path, "w", format="NETCDF4") as nc_file:
+            _save_dense_matrix_to_netcdf(self.test_dense_matrix, nc_file, "test_dense")
+            
+            self.assertTrue("test_dense" in nc_file.variables)
+            self.assertTrue("dim_0" in nc_file.dimensions)
+            self.assertTrue("dim_1" in nc_file.dimensions)
+            self.assertEqual(nc_file.dimensions["dim_0"].size, self.test_dense_matrix.shape[0])
+            self.assertEqual(nc_file.dimensions["dim_1"].size, self.test_dense_matrix.shape[1])
+            saved_matrix = nc_file.variables["test_dense"][:]
+            np.testing.assert_array_equal(saved_matrix, self.test_dense_matrix)
 
-
-    def test_calculate_positions(self):
-        k_ind = np.array([1, 2])
-        l_ind = np.array([2, 3])
-        positions = _calculate_positions(1, 2, self.test_shape, k_ind, l_ind, 1, 2, 2, 3)
-        
-        # Test shape of output
-        self.assertEqual(positions.shape[1], 4)
-        
-        # Test if positions are within bounds
-        self.assertTrue(np.all(positions[:, 0] <= self.test_shape[0]))
-        self.assertTrue(np.all(positions[:, 1] <= self.test_shape[1]))
-        self.assertTrue(np.all(positions[:, 2] <= self.test_shape[2]))
-        self.assertTrue(np.all(positions[:, 3] <= self.test_shape[3]))
-        
-        # Test if positions are non-negative
-        self.assertTrue(np.all(positions >= 0))
-
+    def test__save_sparse_matrix_to_netcdf(self):
+        with Dataset(self.test_file_path, "w", format="NETCDF4") as nc_file:
+            _save_sparse_matrix_to_netcdf(self.test_sparse_matrix, nc_file, "test_sparse")
+            
+            self.assertTrue("test_sparse_row" in nc_file.variables)
+            self.assertTrue("test_sparse_col" in nc_file.variables)
+            self.assertTrue("test_sparse_data" in nc_file.variables)
+            self.assertTrue("nnz" in nc_file.dimensions)
+            self.assertTrue("dim_0" in nc_file.dimensions)
+            self.assertTrue("dim_1" in nc_file.dimensions)
+            self.assertEqual(nc_file.dimensions["nnz"].size, self.test_sparse_matrix.nnz)
+            self.assertEqual(nc_file.dimensions["dim_0"].size, self.test_sparse_matrix.shape[0])
+            self.assertEqual(nc_file.dimensions["dim_1"].size, self.test_sparse_matrix.shape[1])
+            self.assertEqual(nc_file.sparse_format, "coo")
+            
+            saved_rows = nc_file.variables["test_sparse_row"][:]
+            saved_cols = nc_file.variables["test_sparse_col"][:]
+            saved_data = nc_file.variables["test_sparse_data"][:]
+            
+            np.testing.assert_array_equal(saved_rows, self.test_sparse_matrix.row)
+            np.testing.assert_array_equal(saved_cols, self.test_sparse_matrix.col)
+            np.testing.assert_array_equal(saved_data, self.test_sparse_matrix.data)
 
 if __name__ == '__main__':
     unittest.main()

@@ -32,7 +32,7 @@ def save_matrix_to_netcdf(matrix, file_path, variable_name="data") -> None:
             else:
                 raise ValueError("Unsupported matrix type. Provide a numpy array or scipy.sparse.coo_matrix.")
     except Exception as e:
-        print(f"Error saving the matrix: {e}")
+        raise ValueError(f"Error saving the matrix: {e}")
 
 
 def _save_dense_matrix_to_netcdf(matrix, nc_file, variable_name):

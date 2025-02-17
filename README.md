@@ -40,15 +40,14 @@ aml_pred_assim/
 │   ├── core.py                     # Contains core functions for climate data handling
 │   ├── Predecessor.py              # Implements the `Predecessor` class
 │   ├── PrecisionMatrix.py          # Implements the `PrecisionMatrix` class for matrix calculations
-│   ├── Mapper/                     # Submodule for data storage and management
+│   ├── mapper/                     # Submodule for data storage and management
 │   │   ├── __init__.py
 │   │   ├── cds.py                  # Handles climate data download and processing from CDS
 │   │   ├── cds_variables.json      # Mapping of climate variable names
 │   ├── utils.py                    # General auxiliary functions (if needed)
 │   ├── tests/
-│   ├── __init__.py
-│   ├── test_core.py                # Unit tests for `Predecessor`
-│   └── test_data.py                # Tests for the `data` submodule
+│       ├── test_core.py                # Unit tests for `basic`
+│       └── test_utils.py               # Tests for the `utils` submodule
 │
 ├── setup.py                        # Configuration file to install the library
 ├── README.md                       # Project documentation
@@ -87,7 +86,7 @@ py setup.py sdist bdist_wheel
 twine upload dist/*
 ```
 
-### Modules guide
+### Modules guide and usage
 
 https://github.com/Dysaca22/aml_pred_assim/blob/main/Modules_Guide.md
 
