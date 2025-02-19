@@ -61,7 +61,7 @@ aml_pred_assim/
 Create a  virtual environment and activate it:
 ```
 py -m venv venv
-source venv\Scripts\activate
+source venv/Scripts/activate
 ```
 Install the library:
 ```

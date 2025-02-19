@@ -14,7 +14,8 @@ setup(
         'numpy==2.1.3',
         'scipy==1.14.1',
         'cdsapi==0.7.4',
-        'netCDF4==1.7.2'
+        'netCDF4==1.7.2',
+        'matplotlib==3.10.0',
     ],  # Dependencias externas
     python_requires='>=3.12.2',
     classifiers=[
